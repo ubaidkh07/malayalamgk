@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malayalam GK Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manjari:wght@400;700&display=swap');
+        body {
+            font-family: 'Manjari', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .correct-answer {
+            background-color: #10b981 !important;
+            color: white !important;
+            border-color: #059669 !important;
+        }
+        .wrong-answer {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
+        .disabled-btn {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
+            <h1 class="text-xl font-bold">പൊതുവിജ്ഞാനം ക്വിസ്</h1>
+            <div id="timer-box" class="bg-blue-800 px-4 py-2 rounded-full font-mono text-lg font-bold">
+                00:<span id="seconds">30</span>
+            </div>
+        </div>
+
+        <!-- Question Area -->
+        <div class="p-6">
+            <div id="loading" class="text-center py-10">
+                <p class="text-gray-500 italic">ചോദ്യങ്ങൾ ലോഡ് ചെയ്യുന്നു...</p>
+            </div>
+
+            <div id="game-ui" class="hidden">
+                <div class="flex justify-between mb-4 text-sm font-bold text-gray-500">
+                    <span>ചോദ്യം: <span id="current-q-num">1</span></span>
+                    <span>സ്കോർ: <span id="score">0</span></span>
+                </div>
+                
+                <h2 id="question-text" class="text-xl font-bold mb-6 leading-relaxed text-gray-800">
+                    ചോദ്യം ഇവിടെ വരും...
+                </h2>
+
+                <div id="options-container" class="grid grid-cols-1 gap-3">
+                    <!-- Options injected here -->
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button id="next-btn" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition">
+                        അടുത്ത ചോദ്യം
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Area -->
+            <div id="result-ui" class="hidden text-center py-10">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">ക്വിസ് കഴിഞ്ഞു!</h2>
+                <p class="text-lg text-gray-600 mb-6">നിങ്ങളുടെ സ്കോർ: <span id="final-score" class="font-bold text-blue-600">0</span></p>
+                <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700">
+                    വീണ്ടും കളിക്കുക
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const GITHUB_API_URL = "https://raw.githubusercontent.com/ubaidkh07/malayalamgk.github.io/refs/heads/main/gk.json";
+        const TIMER_LIMIT = 30;
+        
+        let questions = [];
+        let currentIdx = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = TIMER_LIMIT;
+        let canAnswer = true;
+
+        // Elements
+        const loadingEl = document.getElementById('loading');
+        const gameUI = document.getElementById('game-ui');
+        const resultUI = document.getElementById('result-ui');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const secondsSpan = document.getElementById('seconds');
+        const nextBtn = document.getElementById('next-btn');
+        const scoreSpan = document.getElementById('score');
+        const currentQNum = document.getElementById('current-q-num');
+
+        // Initial Load
+        async function initQuiz() {
+            try {
+                const response = await fetch(GITHUB_API_URL);
+                if (!response.ok) throw new Error("API Load Failed");
+                const data = await response.json();
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    questions = data;
+                } else {
+                    throw new Error("Invalid data format");
+                }
+            } catch (err) {
+                console.warn("Using fallback data due to fetch error:", err.message);
+                questions = [
+                    {
+                        "q": "ആദ്യത്തെ മലയാള പത്രം ഏതാണ്?",
+                        "a": ["ദീപിക", "മലയാള മനോരമ", "രാജ്യസമാചാരം", "മാതൃഭൂമി"],
+                        "correct": 2
+                    }
+                ];
+            }
+            
+            loadingEl.classList.add('hidden');
+            gameUI.classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (!questions || questions.length === 0 || !questions[currentIdx]) return;
+
+            canAnswer = true;
+            nextBtn.classList.add('hidden');
+            timeLeft = TIMER_LIMIT;
+            updateTimerDisplay();
+            
+            const qData = questions[currentIdx];
+            questionText.innerText = qData.q;
+            currentQNum.innerText = currentIdx + 1;
+            
+            optionsContainer.innerHTML = '';
+            
+            if (qData.a && Array.isArray(qData.a)) {
+                qData.a.forEach((opt, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn w-full p-4 text-left border-2 border-gray-200 rounded-xl hover:bg-gray-50 font-medium text-gray-700";
+                    btn.innerText = opt;
+                    btn.onclick = () => selectAnswer(btn, index);
+                    optionsContainer.appendChild(btn);
+                });
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function handleTimeout() {
+            clearInterval(timer);
+            canAnswer = false; // Disable further clicking
+            revealCorrectAnswer(); // Show answer
+            nextBtn.classList.remove('hidden'); // Show next button
+        }
+
+        function updateTimerDisplay() {
+            secondsSpan.innerText = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+        }
+
+        function selectAnswer(btn, selectedIndex) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            clearInterval(timer);
+
+            const correctIdx = questions[currentIdx].correct;
+            
+            if (selectedIndex === correctIdx) {
+                btn.classList.add('correct-answer');
+                score++;
+                scoreSpan.innerText = score;
+            } else {
+                btn.classList.add('wrong-answer');
+                revealCorrectAnswer();
+            }
+            
+            nextBtn.classList.remove('hidden');
+        }
+
+        function revealCorrectAnswer() {
+            const correctIdx = questions[currentIdx].correct;
+            const buttons = optionsContainer.querySelectorAll('button');
+            buttons.forEach((btn, index) => {
+                if (index === correctIdx) {
+                    btn.classList.add('correct-answer');
+                }
+                btn.classList.add('disabled-btn');
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+
+        nextBtn.onclick = () => {
+            currentIdx++;
+            if (currentIdx < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            gameUI.classList.add('hidden');
+            resultUI.classList.remove('hidden');
+            document.getElementById('final-score').innerText = score + " / " + questions.length;
+        }
+
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>

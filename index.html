@@ -7,72 +7,114 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Manjari:wght@400;700&display=swap');
+        
         body {
             font-family: 'Manjari', sans-serif;
             background-color: #f3f4f6;
         }
+
+        /* Option buttons - Square corners */
         .option-btn {
             transition: all 0.2s ease;
+            border-radius: 4px; /* Minimal rounding for a sharp look */
+            text-align: left;
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e5e7eb;
+            background-color: white;
+            font-weight: 600;
+            color: #374151;
+            font-size: 1.125rem;
         }
+
+        .option-btn:hover {
+            border-color: #3b82f6;
+            background-color: #f9fafb;
+        }
+
         .correct-answer {
             background-color: #10b981 !important;
             color: white !important;
             border-color: #059669 !important;
         }
+
         .wrong-answer {
             background-color: #ef4444 !important;
             color: white !important;
             border-color: #dc2626 !important;
         }
+
         .disabled-btn {
             cursor: not-allowed;
-            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .timer-critical {
+            background-color: #ef4444 !important;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div id="quiz-container" class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+    <div id="quiz-container" class="bg-white w-full max-w-lg shadow-2xl overflow-hidden rounded-lg">
         <!-- Header -->
-        <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
-            <h1 class="text-xl font-bold">പൊതുവിജ്ഞാനം ക്വിസ്</h1>
-            <div id="timer-box" class="bg-blue-800 px-4 py-2 rounded-full font-mono text-lg font-bold">
+        <div class="bg-blue-700 p-6 text-white flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold">പൊതുവിജ്ഞാനം ക്വിസ്</h1>
+                <p class="text-xs opacity-75">By Ubaid Kh</p>
+            </div>
+            <div id="timer-box" class="bg-blue-900 px-4 py-2 font-mono text-xl font-bold rounded">
                 00:<span id="seconds">30</span>
             </div>
         </div>
 
-        <!-- Question Area -->
+        <!-- Progress bar -->
+        <div class="h-1 w-full bg-gray-100">
+            <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
+        </div>
+
         <div class="p-6">
             <div id="loading" class="text-center py-10">
                 <p class="text-gray-500 italic">ചോദ്യങ്ങൾ ലോഡ് ചെയ്യുന്നു...</p>
             </div>
 
             <div id="game-ui" class="hidden">
-                <div class="flex justify-between mb-4 text-sm font-bold text-gray-500">
-                    <span>ചോദ്യം: <span id="current-q-num">1</span></span>
-                    <span>സ്കോർ: <span id="score">0</span></span>
+                <div class="flex justify-between mb-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <span>ചോദ്യം: <span id="current-q-num" class="text-blue-600">1</span> / <span id="total-q-num">0</span></span>
+                    <span>സ്കോർ: <span id="score" class="text-green-600">0</span></span>
                 </div>
                 
                 <h2 id="question-text" class="text-xl font-bold mb-6 leading-relaxed text-gray-800">
                     ചോദ്യം ഇവിടെ വരും...
                 </h2>
 
-                <div id="options-container" class="grid grid-cols-1 gap-3">
-                    <!-- Options injected here -->
+                <div id="options-container" class="space-y-3">
+                    <!-- Options Injected Here -->
                 </div>
 
-                <div class="mt-8 flex justify-end">
-                    <button id="next-btn" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition">
+                <div class="mt-8 flex justify-between items-center h-12">
+                    <p id="msg-box" class="font-bold text-sm"></p>
+                    <button id="next-btn" class="hidden bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 font-bold rounded shadow-md transition-transform active:scale-95">
                         അടുത്ത ചോദ്യം
                     </button>
                 </div>
             </div>
 
-            <!-- Result Area -->
+            <!-- Result View -->
             <div id="result-ui" class="hidden text-center py-10">
-                <h2 class="text-3xl font-bold text-gray-800 mb-2">ക്വിസ് കഴിഞ്ഞു!</h2>
-                <p class="text-lg text-gray-600 mb-6">നിങ്ങളുടെ സ്കോർ: <span id="final-score" class="font-bold text-blue-600">0</span></p>
-                <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">അവസാനിച്ചു!</h2>
+                <div class="my-6 p-6 bg-gray-50 border border-gray-100">
+                    <p class="text-gray-500 uppercase text-xs font-bold mb-1">നിങ്ങളുടെ സ്കോർ</p>
+                    <p id="final-score" class="text-5xl font-black text-blue-700">0 / 0</p>
+                </div>
+                <button onclick="location.reload()" class="w-full bg-blue-700 text-white py-4 font-bold text-lg hover:bg-blue-800 transition-colors">
                     വീണ്ടും കളിക്കുക
                 </button>
             </div>
@@ -80,7 +122,6 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const GITHUB_API_URL = "https://raw.githubusercontent.com/ubaidkh07/malayalamgk/refs/heads/main/gk.json";
         const TIMER_LIMIT = 30;
         
@@ -91,141 +132,130 @@
         let timeLeft = TIMER_LIMIT;
         let canAnswer = true;
 
-        // Elements
-        const loadingEl = document.getElementById('loading');
-        const gameUI = document.getElementById('game-ui');
-        const resultUI = document.getElementById('result-ui');
-        const questionText = document.getElementById('question-text');
-        const optionsContainer = document.getElementById('options-container');
-        const secondsSpan = document.getElementById('seconds');
-        const nextBtn = document.getElementById('next-btn');
-        const scoreSpan = document.getElementById('score');
-        const currentQNum = document.getElementById('current-q-num');
+        const elements = {
+            loading: document.getElementById('loading'),
+            gameUI: document.getElementById('game-ui'),
+            resultUI: document.getElementById('result-ui'),
+            question: document.getElementById('question-text'),
+            options: document.getElementById('options-container'),
+            timerBox: document.getElementById('timer-box'),
+            seconds: document.getElementById('seconds'),
+            nextBtn: document.getElementById('next-btn'),
+            score: document.getElementById('score'),
+            currentNum: document.getElementById('current-q-num'),
+            totalNum: document.getElementById('total-q-num'),
+            progress: document.getElementById('progress-bar'),
+            msg: document.getElementById('msg-box')
+        };
 
-        // Initial Load
-        async function initQuiz() {
+        async function init() {
             try {
-                const response = await fetch(GITHUB_API_URL);
-                if (!response.ok) throw new Error("API Load Failed");
-                const data = await response.json();
-                
-                if (Array.isArray(data) && data.length > 0) {
-                    questions = data;
-                } else {
-                    throw new Error("Invalid data format");
-                }
-            } catch (err) {
-                console.warn("Using fallback data due to fetch error:", err.message);
-                questions = [
-                    {
-                        "q": "ആദ്യത്തെ മലയാള പത്രം ഏതാണ്?",
-                        "a": ["ദീപിക", "മലയാള മനോരമ", "രാജ്യസമാചാരം", "മാതൃഭൂമി"],
-                        "correct": 2
-                    }
-                ];
+                const res = await fetch(GITHUB_API_URL);
+                if (!res.ok) throw new Error();
+                questions = await res.json();
+            } catch (e) {
+                // Fallback
+                questions = [{ "q": "ആദ്യത്തെ മലയാള പത്രം ഏതാണ്?", "a": ["ദീപിക", "മലയാള മനോരമ", "രാജ്യസമാചാരം", "മാതൃഭൂമി"], "correct": 2 }];
             }
             
-            loadingEl.classList.add('hidden');
-            gameUI.classList.remove('hidden');
-            showQuestion();
+            elements.totalNum.innerText = questions.length;
+            elements.loading.classList.add('hidden');
+            elements.gameUI.classList.remove('hidden');
+            renderQuestion();
         }
 
-        function showQuestion() {
-            if (!questions || questions.length === 0 || !questions[currentIdx]) return;
+        function renderQuestion() {
+            if (currentIdx >= questions.length) return endQuiz();
 
             canAnswer = true;
-            nextBtn.classList.add('hidden');
             timeLeft = TIMER_LIMIT;
-            updateTimerDisplay();
+            elements.nextBtn.classList.add('hidden');
+            elements.msg.innerText = "";
+            elements.timerBox.classList.remove('timer-critical');
             
-            const qData = questions[currentIdx];
-            questionText.innerText = qData.q;
-            currentQNum.innerText = currentIdx + 1;
-            
-            optionsContainer.innerHTML = '';
-            
-            if (qData.a && Array.isArray(qData.a)) {
-                qData.a.forEach((opt, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = "option-btn w-full p-4 text-left border-2 border-gray-200 rounded-xl hover:bg-gray-50 font-medium text-gray-700";
-                    btn.innerText = opt;
-                    btn.onclick = () => selectAnswer(btn, index);
-                    optionsContainer.appendChild(btn);
-                });
-            }
+            const q = questions[currentIdx];
+            elements.question.innerText = q.q;
+            elements.currentNum.innerText = currentIdx + 1;
+            elements.progress.style.width = `${(currentIdx / questions.length) * 100}%`;
+
+            elements.options.innerHTML = "";
+            q.a.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn";
+                btn.innerText = opt;
+                btn.onclick = () => handleSelect(btn, i);
+                elements.options.appendChild(btn);
+            });
 
             startTimer();
         }
 
         function startTimer() {
             clearInterval(timer);
+            updateTimerUI();
             timer = setInterval(() => {
                 timeLeft--;
-                updateTimerDisplay();
+                updateTimerUI();
+                if (timeLeft <= 5) elements.timerBox.classList.add('timer-critical');
                 if (timeLeft <= 0) {
-                    handleTimeout();
+                    clearInterval(timer);
+                    canAnswer = false;
+                    highlightCorrect();
+                    elements.msg.innerText = "സമയം കഴിഞ്ഞു!";
+                    elements.msg.className = "font-bold text-sm text-red-500";
+                    elements.nextBtn.classList.remove('hidden');
                 }
             }, 1000);
         }
 
-        function handleTimeout() {
-            clearInterval(timer);
-            canAnswer = false; // Disable further clicking
-            revealCorrectAnswer(); // Show answer
-            nextBtn.classList.remove('hidden'); // Show next button
+        function updateTimerUI() {
+            elements.seconds.innerText = timeLeft < 10 ? '0' + timeLeft : timeLeft;
         }
 
-        function updateTimerDisplay() {
-            secondsSpan.innerText = timeLeft < 10 ? '0' + timeLeft : timeLeft;
-        }
-
-        function selectAnswer(btn, selectedIndex) {
+        function handleSelect(btn, idx) {
             if (!canAnswer) return;
             canAnswer = false;
             clearInterval(timer);
 
-            const correctIdx = questions[currentIdx].correct;
-            
-            if (selectedIndex === correctIdx) {
+            const correct = questions[currentIdx].correct;
+            if (idx === correct) {
                 btn.classList.add('correct-answer');
                 score++;
-                scoreSpan.innerText = score;
+                elements.score.innerText = score;
+                elements.msg.innerText = "ശരിയായ ഉത്തരം!";
+                elements.msg.className = "font-bold text-sm text-green-600";
             } else {
                 btn.classList.add('wrong-answer');
-                revealCorrectAnswer();
+                elements.msg.innerText = "തെറ്റായ ഉത്തരം!";
+                elements.msg.className = "font-bold text-sm text-red-500";
+                highlightCorrect();
             }
-            
-            nextBtn.classList.remove('hidden');
+            elements.nextBtn.classList.remove('hidden');
         }
 
-        function revealCorrectAnswer() {
-            const correctIdx = questions[currentIdx].correct;
-            const buttons = optionsContainer.querySelectorAll('button');
-            buttons.forEach((btn, index) => {
-                if (index === correctIdx) {
-                    btn.classList.add('correct-answer');
-                }
-                btn.classList.add('disabled-btn');
-                btn.style.cursor = 'not-allowed';
+        function highlightCorrect() {
+            const correct = questions[currentIdx].correct;
+            const btns = elements.options.querySelectorAll('button');
+            btns.forEach((b, i) => {
+                b.classList.add('disabled-btn');
+                if (i === correct) b.classList.add('correct-answer');
+                else b.style.opacity = "0.7";
             });
         }
 
-        nextBtn.onclick = () => {
+        elements.nextBtn.onclick = () => {
             currentIdx++;
-            if (currentIdx < questions.length) {
-                showQuestion();
-            } else {
-                showResults();
-            }
+            renderQuestion();
         };
 
-        function showResults() {
-            gameUI.classList.add('hidden');
-            resultUI.classList.remove('hidden');
-            document.getElementById('final-score').innerText = score + " / " + questions.length;
+        function endQuiz() {
+            elements.gameUI.classList.add('hidden');
+            elements.resultUI.classList.remove('hidden');
+            elements.progress.style.width = "100%";
+            document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
         }
 
-        window.onload = initQuiz;
+        window.onload = init;
     </script>
 </body>
 </html>

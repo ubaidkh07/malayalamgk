@@ -19,8 +19,9 @@ This repository hosts a simple Malayalam General Knowledge (GK) quiz website, pe
 
 ## Local Setup
 1. Clone or download the repo.
-2. Open `index.html` in any browser.
-3. Questions load instantly from `gk.json`. No server required.
+   git clone https://github.com/ubaidkh07/malayalamgk.git
+3. Open `index.html` in any browser.
+4. Questions load instantly from `gk.json`. No server required.
 
 ## Hosting
 - **Recommended**: Use free hosts like GitHub Pages, Netlify, or Vercel. Upload files and deploy in minutes.

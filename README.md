@@ -5,7 +5,7 @@ This repository hosts a simple Malayalam General Knowledge (GK) quiz website, pe
 ## Quick Start
 - **Live Demo**: The site was hosted at https://malayalamgk.free.nf (InfinityFree hosting), but it's currently offline beacuse Domain suspended. Fork this repo to host your own copy.
   
-**Files**:
+## Files
   | File | Purpose |
   |------|---------|
   | `gk.json` | Contains GK questions in Malayalam (Q&A format for quizzes). |

@@ -27,6 +27,3 @@ This repository hosts a simple Malayalam General Knowledge (GK) quiz website, pe
 
 ## Contributing
 Add new questions to `gk.json` (JSON array format: `[{"q": "...", "a": [...], "c": "..."}]`). Test locally before pushing.
-
-## License
-MIT—free to use and modify. [play.google](https://play.google.com/store/apps/details?id=com.devhub.malayalamgk&hl=en_IN)

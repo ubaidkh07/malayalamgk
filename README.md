@@ -3,7 +3,7 @@
 This repository hosts a simple Malayalam General Knowledge (GK) quiz website, perfect for Kerala PSC exam prep and casual learning. It features interactive questions loaded from a JSON data file.
 
 ## Quick Start
-- **Live Demo**: The site was hosted at https://malayalamgk.free.nf (InfinityFree hosting), but it's currently offline beacuse Domain suspended. Fork this repo to host your own copy.
+**Live Demo**: The site was hosted at https://malayalamgk.free.nf (InfinityFree hosting), but it's currently offline beacuse Domain suspended. Fork this repo to host your own copy.
   
 ## Files
   | File | Purpose |
